@@ -1,43 +1,47 @@
-# bot_4_movies — Telegram-бот-киногид
+# Telegram-бот-киногид
 
-Бот для поиска информации о фильмах и сериалах через TMDB API.
+Мультиязычный (ru/uz/en) бот для поиска фильмов, сериалов и актёров через TMDB API. Карточки с постером, рейтингом, трейлерами, актёрами, "где посмотреть", избранное, инлайн-режим, авто-перевод описаний на узбекский.
 
 ## Стек
 
-- Python 3.12
-- aiogram 3.26
-- SQLAlchemy 2 + asyncpg + PostgreSQL 16
-- aiohttp (запросы к TMDB API)
+- Python 3.12, aiogram 3
+- SQLAlchemy 2 (async) + asyncpg + PostgreSQL 16
+- httpx (TMDB API), deep-translator (Google Translate)
 - Docker + docker-compose
 
 ## Быстрый старт
 
 ```bash
 cp .env.example .env
-# заполнить .env: BOT_TOKEN, TMDB_API_KEY, DB_PASSWORD, ADMIN_IDS
+# заполнить: BOT_TOKEN, BOT_USERNAME, TMDB_API_KEY, DB_PASSWORD, ADMIN_IDS
 
 docker compose up --build -d
 ```
+
+TMDB-ключ: https://www.themoviedb.org/settings/api (бесплатно).
+
+## Команды
+
+`/start` `/help` `/search <название>` `/trending` `/top` `/now_playing` `/upcoming` `/random` `/genres` `/favorites` `/watched` `/actor <имя>` `/director <имя>` `/lang` `/profile`
+
+Админ: `/admin` `/stats` `/broadcast`
+
+Инлайн: `@bot_username inception` — быстрый поиск из любого чата.
 
 ## Структура
 
 ```
 bot/
 ├── main.py              # точка входа
-├── config.py            # настройки из .env
+├── config.py            # настройки
 ├── i18n.py              # переводы ru/uz/en
-├── emojis.py            # кастомные эмодзи
-├── database/            # модели и CRUD
-├── handlers/            # хэндлеры команд
-│   ├── start.py         # /start, профиль, язык
-│   ├── admin.py         # /admin
-│   └── __todo_domain.py # TODO: поиск, карточки, избранное
+├── emojis.py            # custom emoji ID
+├── database/            # модели + CRUD
+├── handlers/            # start, admin, search, lists, movies, favorites, actors, inline_mode
 ├── middlewares/         # subscription, rate_limit
-├── keyboards/           # inline-клавиатуры
-├── services/
-│   └── __todo_domain.py # TODO: TMDB API клиент
-└── utils/
-    └── commands.py      # меню команд Telegram
+├── keyboards/           # inline + admin клавиатуры
+├── services/            # tmdb клиент, переводчик
+└── utils/               # меню команд
 ```
 
 ## Переменные окружения
@@ -45,8 +49,15 @@ bot/
 | Переменная | Описание |
 |-----------|----------|
 | `BOT_TOKEN` | Токен от @BotFather |
-| `TMDB_API_KEY` | Ключ TMDB API (my.telegram.org) |
-| `TMDB_LANGUAGE` | Язык ответов (ru-RU) |
-| `DB_NAME` | bot_4_movies |
-| `ADMIN_IDS` | Telegram ID через запятую |
-| `CACHE_TTL_DAYS` | Кэш TMDB в днях (7) |
+| `BOT_USERNAME` | Юзернейм бота (без @) |
+| `TMDB_API_KEY` | Ключ TMDB API v3 |
+| `TMDB_BEARER_TOKEN` | Альтернативно — TMDB v4 token |
+| `DB_PASSWORD` | Пароль к PostgreSQL |
+| `ADMIN_IDS` | Telegram ID админов через запятую |
+| `CACHE_TTL_DAYS` | TTL кэша TMDB в днях (по умолчанию 7) |
+
+## Фоновые задачи
+
+- Каждые 5 мин — очистка RAM-кэшей (rate limit, история поиска)
+- Каждые 6 часов — прогрев чартов (trending/top/now_playing на ru/uz/en)
+- Раз в сутки — очистка БД (`movie_cache > 30 дней`, `search_requests > 90 дней`)
