@@ -1,0 +1,16 @@
+# Основные зависимости
+aiogram==3.26.0
+SQLAlchemy==2.0.38
+asyncpg==0.30.0
+alembic==1.14.1
+pydantic-settings==2.8.1
+
+# HTTP клиент для TMDB API
+aiohttp==3.11.11
+httpx==0.27.2
+
+# Ускорение asyncio (не работает на Windows!)
+uvloop==0.22.1
+
+# Перевод TMDB описаний на узбекский (бесплатный Google Translate)
+deep-translator==1.11.4
